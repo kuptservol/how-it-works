@@ -1,8 +1,12 @@
 package ru.skuptsov.thread.pool.counters;
 
+import ru.skuptsov.thread.pool.ThreadPool;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import static java.lang.String.format;
 
@@ -29,8 +33,8 @@ import static java.lang.String.format;
 public class MultithreadClient {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        ExecutorService threadPool = Executors.newFixedThreadPool(8);
-//        ThreadPool threadPool = new ThreadPool(8);
+//        ExecutorService threadPool = Executors.newWorkStealingPool();
+        ThreadPool threadPool = new ThreadPool(8);
         Counter counter = new Counter();
 
         long start = System.nanoTime();

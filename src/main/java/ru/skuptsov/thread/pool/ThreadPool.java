@@ -10,7 +10,7 @@ import java.util.concurrent.Executor;
  */
 public class ThreadPool implements Executor {
     private final static Queue<Runnable> workQueue = new ConcurrentLinkedQueue<>();
-    private static volatile boolean isStopped = false;
+    private static volatile boolean isRunning = true;
 
     public ThreadPool(int nThreads) {
         for (int i = 0; i < nThreads; i++) {
@@ -20,18 +20,20 @@ public class ThreadPool implements Executor {
 
     @Override
     public void execute(Runnable command) {
-        workQueue.offer(command);
+        if (isRunning) {
+            workQueue.offer(command);
+        }
     }
 
     public void shutdown() {
-        isStopped = true;
+        isRunning = false;
     }
 
     private final class TaskWorker implements Runnable {
 
         @Override
         public void run() {
-            while (!isStopped) {
+            while (isRunning) {
                 Runnable nextTask = workQueue.poll();
                 if (nextTask != null) {
                     nextTask.run();
