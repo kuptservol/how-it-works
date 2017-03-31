@@ -15,12 +15,40 @@ import static org.openjdk.jcstress.annotations.Expect.FORBIDDEN;
  * @author Sergey Kuptsov
  * @since 30/03/2017
  */
+/*
+--------------------- HashMap ------------------
+  [FAILED] ru.skuptsov.concurrent.map.test.ConcurrentMapThreadSafetyTest.MapPutGetTest
+    (JVM args: [-XX:+UnlockDiagnosticVMOptions, -XX:+WhiteBoxAPI, -XX:-RestrictContended, -Dfile.encoding=UTF-8, -Duser.country=RU, -Duser.language=ru, -Duser.variant, -server, -XX:+UnlockDiagnosticVMOptions])
+  Observed state   Occurrences   Expectation  Interpretation
+           -1, 1       107 486     FORBIDDEN  Case violating atomicity.
+           0, -1       101 025     FORBIDDEN  Case violating atomicity.
+            0, 1    54 304 079    ACCEPTABLE  return 0L and 1L
+
+  [FAILED] ru.skuptsov.concurrent.map.test.ConcurrentMapThreadSafetyTest.MapResizeTest
+    (JVM args: [-XX:+UnlockDiagnosticVMOptions, -XX:+WhiteBoxAPI, -XX:-RestrictContended, -Dfile.encoding=UTF-8, -Duser.country=RU, -Duser.language=ru, -Duser.variant, -server, -XX:+UnlockDiagnosticVMOptions])
+  Observed state   Occurrences   Expectation  Interpretation
+               1       183 346     FORBIDDEN  Case violating atomicity.
+               2     3 367 978     FORBIDDEN  Case violating atomicity.
+               3    11 099 702     FORBIDDEN  Case violating atomicity.
+               4    16 155 824    ACCEPTABLE  acceptable resize
+
+  [FAILED] ru.skuptsov.concurrent.map.test.ConcurrentMapThreadSafetyTest.MapSizeTest
+    (JVM args: [-XX:+UnlockDiagnosticVMOptions, -XX:+WhiteBoxAPI, -XX:-RestrictContended, -Dfile.encoding=UTF-8, -Duser.country=RU, -Duser.language=ru, -Duser.variant, -server, -XX:+UnlockDiagnosticVMOptions])
+  Observed state   Occurrences   Expectation  Interpretation
+               1     1 875 288     FORBIDDEN  size of map = 1 is race
+               2    38 080 712    ACCEPTABLE  size of map = 2
+
+--------------------- SynchronizedHashMap ------------------
+     [OK] ru.skuptsov.concurrent.map.test.ConcurrentMapThreadSafetyTest.MapResizeTest
+     [OK] ru.skuptsov.concurrent.map.test.ConcurrentMapThreadSafetyTest.MapSizeTest
+     [OK] ru.skuptsov.concurrent.map.test.ConcurrentMapThreadSafetyTest.MapPutGetTest
+ */
 public class ConcurrentMapThreadSafetyTest {
 
     @State
     public static class MapState {
         //        final Map<String, Integer> map = new HashMap<>(3);
-//        final Map<String, Integer> map = new Hashtable<>(3);
+        //        final Map<String, Integer> map = new Hashtable<>(3);
 //        final Map<String, Integer> map = Collections.synchronizedMap(new HashMap<>(3));
 //        final Map<String, Integer> map = new ConcurrentHashMap<>(3)
         final Map<String, Integer> map = new SynchronizedHashMap<>(new HashMap<>(3));
