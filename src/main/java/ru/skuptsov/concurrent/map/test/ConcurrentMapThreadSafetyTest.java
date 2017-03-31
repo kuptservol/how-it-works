@@ -14,7 +14,7 @@ import static org.openjdk.jcstress.annotations.Expect.FORBIDDEN;
  * @author Sergey Kuptsov
  * @since 30/03/2017
  */
-public class ConcurrentMapTest {
+public class ConcurrentMapThreadSafetyTest {
 
     @State
     public static class MapState {

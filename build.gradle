@@ -8,13 +8,14 @@ buildscript {
 
     dependencies {
         classpath 'com.github.erizo.gradle:jcstress-gradle-plugin:0.8.0'
+        classpath "gradle.plugin.me.champeau.gradle:jmh-gradle-plugin:0.3.0"
     }
 }
 
-apply plugin: 'java'
-
 sourceCompatibility = 1.8
 
+apply plugin: 'java'
+apply plugin: "me.champeau.gradle.jmh"
 apply plugin: 'jcstress'
 
 repositories {
@@ -31,4 +32,6 @@ jcstress {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
     compile 'org.openjdk.jcstress:jcstress-core:0.2'
+    compile "org.openjdk.jmh:jmh-core:1.12"
+    compile 'org.openjdk.jmh:jmh-generator-annprocess:1.12'
 }
