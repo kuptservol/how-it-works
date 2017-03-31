@@ -3,6 +3,7 @@ package ru.skuptsov.concurrent.map.test;
 import org.openjdk.jcstress.annotations.*;
 import org.openjdk.jcstress.infra.results.IntResult1;
 import org.openjdk.jcstress.infra.results.LongResult2;
+import ru.skuptsov.concurrent.map.impl.SynchronizedHashMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,11 +19,11 @@ public class ConcurrentMapThreadSafetyTest {
 
     @State
     public static class MapState {
-        final Map<String, Integer> map = new HashMap<>(3);
+        //        final Map<String, Integer> map = new HashMap<>(3);
 //        final Map<String, Integer> map = new Hashtable<>(3);
 //        final Map<String, Integer> map = Collections.synchronizedMap(new HashMap<>(3));
 //        final Map<String, Integer> map = new ConcurrentHashMap<>(3)
-
+        final Map<String, Integer> map = new SynchronizedHashMap<>(new HashMap<>(3));
     }
 
     @JCStressTest

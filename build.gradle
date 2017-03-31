@@ -4,6 +4,9 @@ version '1.0-SNAPSHOT'
 buildscript {
     repositories {
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
 
     dependencies {
@@ -12,11 +15,12 @@ buildscript {
     }
 }
 
-sourceCompatibility = 1.8
-
 apply plugin: 'java'
 apply plugin: "me.champeau.gradle.jmh"
 apply plugin: 'jcstress'
+
+sourceCompatibility = 1.8
+
 
 repositories {
     mavenCentral()
