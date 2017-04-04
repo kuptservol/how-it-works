@@ -3,9 +3,8 @@ package ru.skuptsov.concurrent.map.test;
 import org.openjdk.jcstress.annotations.*;
 import org.openjdk.jcstress.infra.results.IntResult1;
 import org.openjdk.jcstress.infra.results.LongResult2;
-import ru.skuptsov.concurrent.map.impl.SynchronizedHashMap;
+import ru.skuptsov.concurrent.map.impl.LockFreeArrayConcurrentHashMap;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.openjdk.jcstress.annotations.Expect.ACCEPTABLE;
@@ -51,11 +50,13 @@ public class ConcurrentMapThreadSafetyTest {
         //        final Map<String, Integer> map = new Hashtable<>(3);
 //        final Map<String, Integer> map = Collections.synchronizedMap(new HashMap<>(3));
 //        final Map<String, Integer> map = new ConcurrentHashMap<>(3)
-        final Map<String, Integer> map = new SynchronizedHashMap<>(new HashMap<>(3));
+//        final Map<String, Integer> map = new GeneralMonitorSynchronizedHashMap<>(new HashMap<>(3));
+//        final Map<String, Integer> map = new LockStripingArrayConcurrentHashMap<>(3);
+        final Map<String, Integer> map = new LockFreeArrayConcurrentHashMap<>(3);
     }
 
     @JCStressTest
-    @Description("Test race map get and put")
+    @Description("Test race map volatileGetNode and put")
     @Outcome(id = "0, 1", expect = ACCEPTABLE, desc = "return 0L and 1L")
     @Outcome(expect = FORBIDDEN, desc = "Case violating atomicity.")
     public static class MapPutGetTest {

@@ -9,10 +9,6 @@ import java.util.Set;
  * @since 31/03/2017
  */
 public abstract class BaseMap<K, V> implements Map<K, V> {
-    @Override
-    public V remove(Object key) {
-        throw new UnsupportedOperationException();
-    }
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {

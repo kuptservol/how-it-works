@@ -1,26 +1,32 @@
 package ru.skuptsov.concurrent.map.impl;
 
-import ru.skuptsov.concurrent.map.IMap;
-
 import java.util.Map;
 
 /**
  * @author Sergey Kuptsov
  * @since 31/03/2017
  */
-public class SynchronizedHashMap<K, V> extends BaseMap<K, V> implements Map<K, V>, IMap<K, V> {
+public class GeneralMonitorSynchronizedHashMap<K, V> extends BaseMap<K, V> implements Map<K, V> {
 
     private final Map<K, V> provider;
-    private final Object monitor = new Object();
+    private final Object monitor;
 
-    public SynchronizedHashMap(Map<K, V> provider) {
+    public GeneralMonitorSynchronizedHashMap(Map<K, V> provider) {
         this.provider = provider;
+        monitor = this;
     }
 
     @Override
     public V put(K key, V value) {
         synchronized (monitor) {
             return provider.put(key, value);
+        }
+    }
+
+    @Override
+    public V remove(Object key) {
+        synchronized (monitor) {
+            return provider.remove(key);
         }
     }
 

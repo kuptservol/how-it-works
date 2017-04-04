@@ -2,7 +2,9 @@ package ru.skuptsov.concurrent.map.test;
 
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
-import ru.skuptsov.concurrent.map.impl.SynchronizedHashMap;
+import ru.skuptsov.concurrent.map.impl.GeneralMonitorSynchronizedHashMap;
+import ru.skuptsov.concurrent.map.impl.LockFreeArrayConcurrentHashMap;
+import ru.skuptsov.concurrent.map.impl.LockStripingArrayConcurrentHashMap;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -42,7 +44,7 @@ ConcurrentMapBenchmark.test            10  synchronizedhashmap            10  av
 public class ConcurrentMapBenchmark {
     private Map<Integer, Integer> map;
 
-    @Param({"concurrenthashmap", "hashtable", "synchronizedhashmap"})
+    @Param({"synchronizedhashmap", "hashtable", "lockarrayconcurrentmap", "lockfreearrayconcurrenthashmap", "concurrenthashmap"})
     private String type;
 
     @Param({"1", "10"})
@@ -55,15 +57,23 @@ public class ConcurrentMapBenchmark {
 
     @Setup
     public void setup() {
+        // for some buckets growth
+        int initCap = NUM / 4;
         switch (type) {
             case "hashtable":
-                map = new Hashtable<>();
+                map = new Hashtable<>(initCap);
                 break;
             case "concurrenthashmap":
-                map = new ConcurrentHashMap<>();
+                map = new ConcurrentHashMap<>(initCap);
                 break;
             case "synchronizedhashmap":
-                map = new SynchronizedHashMap<>(new HashMap<>());
+                map = new GeneralMonitorSynchronizedHashMap<>(new HashMap<>(initCap));
+                break;
+            case "lockarrayconcurrentmap":
+                map = new LockStripingArrayConcurrentHashMap<>(initCap);
+                break;
+            case "lockfreearrayconcurrenthashmap":
+                map = new LockFreeArrayConcurrentHashMap<>(initCap);
                 break;
         }
     }
