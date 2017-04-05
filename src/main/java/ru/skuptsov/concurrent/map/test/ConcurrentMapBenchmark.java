@@ -26,25 +26,11 @@ import static java.util.concurrent.TimeUnit.MICROSECONDS;
 @OutputTimeUnit(MICROSECONDS)
 /*
 
-Benchmark                    (readersNum)               (type)  (writersNum)  Mode  Cnt     Score     Error  Units
-ConcurrentMapBenchmark.test             1    concurrenthashmap             1  avgt   15    65,157 ±   3,636  us/op
-ConcurrentMapBenchmark.test             1    concurrenthashmap            10  avgt   15   302,023 ±  11,893  us/op
-ConcurrentMapBenchmark.test             1            hashtable             1  avgt   15   156,149 ±   8,133  us/op
-ConcurrentMapBenchmark.test             1            hashtable            10  avgt   15   736,649 ±  31,852  us/op
-ConcurrentMapBenchmark.test             1  synchronizedhashmap             1  avgt   15   178,888 ±  11,110  us/op
-ConcurrentMapBenchmark.test             1  synchronizedhashmap            10  avgt   15  1019,344 ±  67,259  us/op
-ConcurrentMapBenchmark.test            10    concurrenthashmap             1  avgt   15   235,409 ±   6,956  us/op
-ConcurrentMapBenchmark.test            10    concurrenthashmap            10  avgt   15   395,036 ±  23,586  us/op
-ConcurrentMapBenchmark.test            10            hashtable             1  avgt   15   873,091 ±  65,774  us/op
-ConcurrentMapBenchmark.test            10            hashtable            10  avgt   15  1564,516 ± 126,142  us/op
-ConcurrentMapBenchmark.test            10  synchronizedhashmap             1  avgt   15   983,234 ± 109,709  us/op
-ConcurrentMapBenchmark.test            10  synchronizedhashmap            10  avgt   15  1703,271 ± 162,345  us/op
-
  */
 public class ConcurrentMapBenchmark {
     private Map<Integer, Integer> map;
 
-    @Param({"synchronizedhashmap", "hashtable", "lockarrayconcurrentmap", "lockfreearrayconcurrenthashmap", "concurrenthashmap"})
+    @Param({"hashtable", "generalmonitorsynchronizedmap", "lockarrayconcurrentmap", "lockfreearrayconcurrenthashmap", "concurrenthashmap"})
     private String type;
 
     @Param({"1", "10"})
@@ -55,10 +41,13 @@ public class ConcurrentMapBenchmark {
 
     private final static int NUM = 1000;
 
+    @Param({"1", "6"})
+    private static int initCapDelim;
+
     @Setup
     public void setup() {
-        // for some buckets growth
-        int initCap = NUM / 4;
+        int initCap = NUM / initCapDelim;
+
         switch (type) {
             case "hashtable":
                 map = new Hashtable<>(initCap);
@@ -66,7 +55,7 @@ public class ConcurrentMapBenchmark {
             case "concurrenthashmap":
                 map = new ConcurrentHashMap<>(initCap);
                 break;
-            case "synchronizedhashmap":
+            case "generalmonitorsynchronizedmap":
                 map = new GeneralMonitorSynchronizedHashMap<>(new HashMap<>(initCap));
                 break;
             case "lockarrayconcurrentmap":

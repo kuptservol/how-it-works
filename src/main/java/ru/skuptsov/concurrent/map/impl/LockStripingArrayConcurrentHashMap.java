@@ -123,8 +123,7 @@ public class LockStripingArrayConcurrentHashMap<K, V> extends BaseMap<K, V> impl
 
     private boolean isKeyEquals(Object key, int hash, Node<K, V> node) {
         return node.hash == hash &&
-                node.key == key ||
-                (node.key != null && node.key.equals(key));
+                node.key == key || (node.key.equals(key));
     }
 
     private int hash(Object key) {

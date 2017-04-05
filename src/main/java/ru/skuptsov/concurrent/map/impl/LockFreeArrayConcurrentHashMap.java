@@ -11,17 +11,10 @@ import java.util.concurrent.atomic.LongAdder;
  * @author Sergey Kuptsov
  * @since 03/04/2017
  */
-//some words not to forget
-/*
-    1. we can use AtomicReferenceArray but it accepts only Object - really? - can we switch?
-    2. in volatileGetNode we can now read next values safely cause there is a memory barier
-    3. why we need to block in get - other solution is Harris'а для lock-free ordered list
-     */
 public class LockFreeArrayConcurrentHashMap<K, V> extends BaseMap<K, V> implements Map<K, V> {
-    // long adder
-    // add some javadocs
-    // no locks
+    // long adder as counter
     private final LongAdder count = new LongAdder();
+    // no lock pool
     private final Node<K, V>[] buckets;
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -46,7 +39,7 @@ public class LockFreeArrayConcurrentHashMap<K, V> extends BaseMap<K, V> implemen
                 return node.value;
             }
 
-            // walk through the rest
+            // walk through the rest to find target node
             while ((node = node.next) != null) {
                 if (isKeyEquals(key, hash, node))
                     return node.value;
@@ -60,9 +53,10 @@ public class LockFreeArrayConcurrentHashMap<K, V> extends BaseMap<K, V> implemen
     public V put(K key, V value) {
         if (key == null || value == null) throw new IllegalArgumentException();
         int hash = hash(key);
-        // no resize in this implementation - so we index will not change
+        // no resize in this implementation - so the index will not change
         int bucketIndex = getBucketIndex(hash);
 
+        // cas loop trying not to miss
         while (true) {
             Node<K, V> node;
             // if bucket is empty try to set new head with cas
@@ -71,8 +65,6 @@ public class LockFreeArrayConcurrentHashMap<K, V> extends BaseMap<K, V> implemen
                         new Node<>(hash, key, value, null))) {
                     // if we succeed to set head - then break and return null
 
-                    // is it atomic? -  haed could be deleted already here - but if deleted -
-                    // there will be decrement plus increment = 0 - maybe ok?
                     count.increment();
                     break;
                 }
@@ -146,20 +138,23 @@ public class LockFreeArrayConcurrentHashMap<K, V> extends BaseMap<K, V> implemen
         }
     }
 
-    // completely new
     /* ---------------- Volatile bucket array access -------------- */
 
     @SuppressWarnings("unchecked")
+    // read array header node value by index
     private <K, V> Node<K, V> volatileGetNode(int i) {
         return (Node<K, V>) U.getObjectVolatile(buckets, ((long) i << ASHIFT) + ABASE);
     }
 
+    // cas array header node value by index
     private <K, V> boolean compareAndSwapNode(int i, Node<K, V> expectedNode, Node<K, V> setNode) {
         return U.compareAndSwapObject(buckets, ((long) i << ASHIFT) + ABASE, expectedNode, setNode);
     }
 
     private static final sun.misc.Unsafe U;
+    // Node[] header shift
     private static final long ABASE;
+    // Node.class size shift
     private static final int ASHIFT;
 
     static {

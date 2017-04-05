@@ -37,7 +37,17 @@ import static org.openjdk.jcstress.annotations.Expect.FORBIDDEN;
                1     1 875 288     FORBIDDEN  size of map = 1 is race
                2    38 080 712    ACCEPTABLE  size of map = 2
 
---------------------- SynchronizedHashMap ------------------
+--------------------- GeneralMonitorSynchronizedHashMap ------------------
+     [OK] ru.skuptsov.concurrent.map.test.ConcurrentMapThreadSafetyTest.MapResizeTest
+     [OK] ru.skuptsov.concurrent.map.test.ConcurrentMapThreadSafetyTest.MapSizeTest
+     [OK] ru.skuptsov.concurrent.map.test.ConcurrentMapThreadSafetyTest.MapPutGetTest
+
+--------------------- LockStripingArrayConcurrentHashMap ------------------
+     [OK] ru.skuptsov.concurrent.map.test.ConcurrentMapThreadSafetyTest.MapResizeTest
+     [OK] ru.skuptsov.concurrent.map.test.ConcurrentMapThreadSafetyTest.MapSizeTest
+     [OK] ru.skuptsov.concurrent.map.test.ConcurrentMapThreadSafetyTest.MapPutGetTest
+
+--------------------- LockFreeArrayConcurrentHashMap ------------------
      [OK] ru.skuptsov.concurrent.map.test.ConcurrentMapThreadSafetyTest.MapResizeTest
      [OK] ru.skuptsov.concurrent.map.test.ConcurrentMapThreadSafetyTest.MapSizeTest
      [OK] ru.skuptsov.concurrent.map.test.ConcurrentMapThreadSafetyTest.MapPutGetTest
@@ -46,11 +56,11 @@ public class ConcurrentMapThreadSafetyTest {
 
     @State
     public static class MapState {
-        //        final Map<String, Integer> map = new HashMap<>(3);
-        //        final Map<String, Integer> map = new Hashtable<>(3);
+//        final Map<String, Integer> map = new HashMap<>(3);
+//        final Map<String, Integer> map = new Hashtable<>(3);
 //        final Map<String, Integer> map = Collections.synchronizedMap(new HashMap<>(3));
 //        final Map<String, Integer> map = new ConcurrentHashMap<>(3)
-//        final Map<String, Integer> map = new GeneralMonitorSynchronizedHashMap<>(new HashMap<>(3));
+//        final Map<String, Integer> map = new GeneralMonitorSynchronizedHashMap<>(3);
 //        final Map<String, Integer> map = new LockStripingArrayConcurrentHashMap<>(3);
         final Map<String, Integer> map = new LockFreeArrayConcurrentHashMap<>(3);
     }
