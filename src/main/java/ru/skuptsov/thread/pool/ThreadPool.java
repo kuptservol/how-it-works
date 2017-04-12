@@ -9,8 +9,8 @@ import java.util.concurrent.Executor;
  * @since 02/03/2017
  */
 public class ThreadPool implements Executor {
-    private final static Queue<Runnable> workQueue = new ConcurrentLinkedQueue<>();
-    private static volatile boolean isRunning = true;
+    private final Queue<Runnable> workQueue = new ConcurrentLinkedQueue<>();
+    private volatile boolean isRunning = true;
 
     public ThreadPool(int nThreads) {
         for (int i = 0; i < nThreads; i++) {
