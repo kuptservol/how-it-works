@@ -1,6 +1,7 @@
 package ru.skuptsov.stream.test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
@@ -20,6 +21,7 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import ru.skuptsov.stream.SimpleStream;
 import ru.skuptsov.stream.impl.CloningListStream;
+import ru.skuptsov.stream.impl.PerElementTransformStageChainStream;
 
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 
@@ -32,6 +34,7 @@ import static java.util.concurrent.TimeUnit.MICROSECONDS;
 public class SimpleStreamsBench {
 
     private SimpleStream<Integer> cloneStream;
+    private SimpleStream<Integer> perElTransformationChaonStream;
     private Stream<Integer> javaStream;
     private List<Integer> list;
 
@@ -41,6 +44,8 @@ public class SimpleStreamsBench {
         for (int i = 0; i < 10000; i++) {
             list.add(ThreadLocalRandom.current().nextInt());
         }
+
+        list = Collections.unmodifiableList(list);
     }
 
     @Benchmark
@@ -55,8 +60,30 @@ public class SimpleStreamsBench {
     }
 
     @Benchmark
+    public void perElTransformationChainStream(Blackhole bh) throws ExecutionException, InterruptedException {
+        perElTransformationChaonStream = PerElementTransformStageChainStream.stream(list);
+        bh.consume(perElTransformationChaonStream
+                .filter(value -> value % 2 == 0)
+                .map(value -> value + 1)
+                .filter(value -> value % 3 == 0)
+                .map(value -> value * 2)
+                .collectToList());
+    }
+
+    @Benchmark
     public void testJavaStream(Blackhole bh) throws ExecutionException, InterruptedException {
         javaStream = list.stream();
+        bh.consume(javaStream
+                .filter(value -> value % 2 == 0)
+                .map(value -> value + 1)
+                .filter(value -> value % 3 == 0)
+                .map(value -> value * 2)
+                .collect(Collectors.toList()));
+    }
+
+    @Benchmark
+    public void testJavaParallelStream(Blackhole bh) throws ExecutionException, InterruptedException {
+        javaStream = list.parallelStream();
         bh.consume(javaStream
                 .filter(value -> value % 2 == 0)
                 .map(value -> value + 1)
