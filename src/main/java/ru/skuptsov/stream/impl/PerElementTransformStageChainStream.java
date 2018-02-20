@@ -12,22 +12,19 @@ public class PerElementTransformStageChainStream {
 
     private static class StreamStage<IN, OUT> implements SimpleStream<OUT> {
         private final List<?> list;
-        private final StreamStage firstStage;
         private final StreamStage prevStage;
-        private final Function<Consumer<OUT>, Consumer<IN>> consumerPipelineWrapper;
+        private final Function<Consumer<OUT>, Consumer<IN>> consumerPipelineTransformer;
 
-        private StreamStage(List<?> list, Function<Consumer<OUT>, Consumer<IN>> consumerPipelineWrapper) {
+        private StreamStage(List<?> list, Function<Consumer<OUT>, Consumer<IN>> consumerPipelineTransformer) {
             this.list = list;
-            this.firstStage = this;
             this.prevStage = null;
-            this.consumerPipelineWrapper = consumerPipelineWrapper;
+            this.consumerPipelineTransformer = consumerPipelineTransformer;
         }
 
-        private StreamStage(List<?> list, StreamStage<?, ?> upStream, Function<Consumer<OUT>, Consumer<IN>> consumerPipelineWrapper) {
+        private StreamStage(List<?> list, StreamStage<?, ?> upStream, Function<Consumer<OUT>, Consumer<IN>> consumerPipelineTransformer) {
             this.list = list;
-            this.firstStage = upStream.firstStage;
             this.prevStage = upStream;
-            this.consumerPipelineWrapper = consumerPipelineWrapper;
+            this.consumerPipelineTransformer = consumerPipelineTransformer;
         }
 
         private abstract static class TransformChain<T, OUT> implements Consumer<T> {
@@ -92,7 +89,7 @@ public class PerElementTransformStageChainStream {
 
             Consumer listElConsumer = finalConsumer;
             for (StreamStage stage = this; stage.prevStage != null; stage = stage.prevStage) {
-                listElConsumer = (Consumer) stage.consumerPipelineWrapper.apply(listElConsumer);
+                listElConsumer = (Consumer) stage.consumerPipelineTransformer.apply(listElConsumer);
             }
 
             for (Object el : list) {

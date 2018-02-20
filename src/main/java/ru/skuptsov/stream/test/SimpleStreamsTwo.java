@@ -31,7 +31,7 @@ import static java.util.concurrent.TimeUnit.MICROSECONDS;
 @Fork(3)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(MICROSECONDS)
-public class SimpleStreamsBench {
+public class SimpleStreamsTwo {
 
     private SimpleStream<Integer> cloneStream;
     private SimpleStream<Integer> perElTransformationChaonStream;
