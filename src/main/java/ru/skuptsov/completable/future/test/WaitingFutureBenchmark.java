@@ -24,8 +24,6 @@ import ru.skuptsov.completable.future.impl.WaitingFuture;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 
 @State(Scope.Thread)
-@Warmup(iterations = 1, time = 2)
-@Measurement(iterations = 1, time = 2)
 @Fork(1)
 @BenchmarkMode(Mode.AverageTime)
 @Threads(100)

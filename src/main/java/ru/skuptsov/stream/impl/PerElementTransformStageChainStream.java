@@ -1,7 +1,10 @@
 package ru.skuptsov.stream.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -10,27 +13,30 @@ import ru.skuptsov.stream.SimpleStream;
 
 public class PerElementTransformStageChainStream {
 
-    private static class StreamStage<IN, OUT> implements SimpleStream<OUT> {
-        private final List<?> list;
-        private final StreamStage prevStage;
-        private final Function<Consumer<OUT>, Consumer<IN>> consumerPipelineTransformer;
+    static class StreamStage<IN, OUT> implements SimpleStream<OUT> {
+        final List<?> list;
+        final StreamStage prevStage;
+        final Function<Consumer<OUT>, Consumer<IN>> consumerPipelineTransformer;
+        final boolean parallel;
 
-        private StreamStage(List<?> list, Function<Consumer<OUT>, Consumer<IN>> consumerPipelineTransformer) {
+        StreamStage(List<?> list, Function<Consumer<OUT>, Consumer<IN>> consumerPipelineTransformer, boolean parallel) {
             this.list = list;
+            this.parallel = parallel;
             this.prevStage = null;
             this.consumerPipelineTransformer = consumerPipelineTransformer;
         }
 
-        private StreamStage(List<?> list, StreamStage<?, ?> upStream, Function<Consumer<OUT>, Consumer<IN>> consumerPipelineTransformer) {
+        StreamStage(List<?> list, StreamStage<?, ?> upStream, Function<Consumer<OUT>, Consumer<IN>> consumerPipelineTransformer, boolean parallel) {
             this.list = list;
             this.prevStage = upStream;
             this.consumerPipelineTransformer = consumerPipelineTransformer;
+            this.parallel = parallel;
         }
 
-        private abstract static class TransformChain<T, OUT> implements Consumer<T> {
+        abstract static class TransformChain<T, OUT> implements Consumer<T> {
             protected final Consumer<? super OUT> downstream;
 
-            private TransformChain(Consumer<? super OUT> downstream) {
+            TransformChain(Consumer<? super OUT> downstream) {
                 this.downstream = downstream;
             }
         }
@@ -52,7 +58,8 @@ public class PerElementTransformStageChainStream {
                                 }
                             };
                         }
-                    }
+                    },
+                    parallel
             );
         }
 
@@ -71,26 +78,67 @@ public class PerElementTransformStageChainStream {
                                 }
                             };
                         }
-                    }
+                    },
+                    parallel
             );
         }
 
         @Override
         @SuppressWarnings("unchecked")
         public List<OUT> collectToList() {
+            if (parallel) {
+                return processParallel();
+            } else {
+                return processSerial();
+            }
+        }
+
+        private List<OUT> processParallel() {
             List<OUT> elements = new ArrayList<>();
 
-            Consumer<OUT> finalConsumer = new Consumer<OUT>() {
-                @Override
-                public void accept(OUT out) {
-                    elements.add(out);
-                }
-            };
+            int processors = Runtime.getRuntime().availableProcessors();
+            List<Future<Collection<?>>> futures = new ArrayList<>();
+            List<? extends List<?>> partitionedLists = new Partition<>(list, list.size() / processors);
 
-            Consumer listElConsumer = finalConsumer;
-            for (StreamStage stage = this; stage.prevStage != null; stage = stage.prevStage) {
-                listElConsumer = (Consumer) stage.consumerPipelineTransformer.apply(listElConsumer);
+            for (List<?> subList : partitionedLists) {
+                futures.add(CompletableFuture.supplyAsync(
+                        () -> {
+                            List<Object> subElements = new ArrayList<>();
+                            for (Object el : subList) {
+                                wrapFunctions(subElements::add).accept(el);
+                            }
+
+                            return subElements;
+                        }));
             }
+
+            CompletableFuture<Void> all = CompletableFuture.allOf(futures.toArray(new CompletableFuture[1]));
+            try {
+                all.get();
+                for (Future<Collection<?>> future : futures) {
+                    elements.addAll((Collection<? extends OUT>) future.get());
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+            return elements;
+        }
+
+        Consumer wrapFunctions(Consumer lastConsumer) {
+            Consumer consumer = lastConsumer;
+            for (StreamStage stage = this; stage.prevStage != null; stage = stage.prevStage) {
+                consumer = (Consumer) stage.consumerPipelineTransformer.apply(consumer);
+            }
+            return consumer;
+        }
+
+        private List<OUT> processSerial() {
+            List<OUT> elements = new ArrayList<>();
+
+            Consumer<OUT> finalConsumer = elements::add;
+
+            Consumer listElConsumer = wrapFunctions(finalConsumer);
 
             for (Object el : list) {
                 listElConsumer.accept(el);
@@ -100,11 +148,11 @@ public class PerElementTransformStageChainStream {
         }
     }
 
-    public static <T> SimpleStream<T> stream(List<T> list) {
-        return PerElementTransformStageChainStream.startStage(list);
+    public static <T> SimpleStream<T> stream(List<T> list, boolean parallel) {
+        return PerElementTransformStageChainStream.startStage(list, parallel);
     }
 
-    private static <T> SimpleStream<T> startStage(List<T> list) {
+    private static <T> SimpleStream<T> startStage(List<T> list, boolean parallel) {
         return new StreamStage<T, T>(
                 list,
                 new Function<Consumer<T>, Consumer<T>>() {
@@ -117,6 +165,7 @@ public class PerElementTransformStageChainStream {
                             }
                         };
                     }
-                });
+                },
+                parallel);
     }
 }
