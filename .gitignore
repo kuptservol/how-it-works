@@ -1,1 +1,5 @@
 *.pyc
+/build/
+/.gradle/
+/.idea/
+/gradle/
