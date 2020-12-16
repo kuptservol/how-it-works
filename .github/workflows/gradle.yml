@@ -20,11 +20,6 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew build 
-    - name: Jcstress with Gradle
-      run: ./gradlew jcstress 
-    - name: Jmh with Gradle
-      run: ./gradlew jmh     
+    - uses: eskatos/gradle-command-action@v1
+      with:
+        arguments: clean build jcstress jmh
