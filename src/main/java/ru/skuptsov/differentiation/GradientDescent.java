@@ -28,12 +28,12 @@ public class GradientDescent {
         }
 
         // start with random values
-        Node α = Node.variable(random.nextDouble());
-        Node β = Node.variable(random.nextDouble());
-        System.out.println("at start α=" + format.format(α.getData()) + " β=" + format.format(β.getData()));
+        Node alpha = Node.variable(random.nextDouble());
+        Node beta = Node.variable(random.nextDouble());
+        System.out.println("at start alpha=" + format.format(alpha.getData()) + " beta=" + format.format(beta.getData()));
 
         int epochs = 50;
-        double η = 0.0001;
+        double eta = 0.0001;
         for (int i = 0; i < epochs; i++) {
 
             double avg_loss = 0;
@@ -43,8 +43,8 @@ public class GradientDescent {
                 Node y = Node.param(xy[j][1]);
 
                 // count loss function
-                Node w5 = Node.multiply(α, x);
-                Node w6 = Node.plus(w5, β);
+                Node w5 = Node.multiply(alpha, x);
+                Node w6 = Node.plus(w5, beta);
                 Node w7 = Node.minus(w6, y);
                 Node loss = Node.pow_2(w7);
 
@@ -54,12 +54,12 @@ public class GradientDescent {
                 // make differentiation
                 loss.autoDifferentiation();
 
-                // adjust α and β in respect to average gradient descent
-                α = Node.variable(α.getData() - η * α.getDerivative());
-                β = Node.variable(β.getData() - η * β.getDerivative());
+                // adjust alpha and beta in respect to average gradient descent
+                alpha = Node.variable(alpha.getData() - eta * alpha.getDerivative());
+                beta = Node.variable(beta.getData() - eta * beta.getDerivative());
             }
 
-            System.out.println("epoch " + i + " α=" + format.format(α.getData()) + " β=" + format.format(β.getData()) + " avg loss=" + format.format(avg_loss));
+            System.out.println("epoch " + i + " alpha=" + format.format(alpha.getData()) + " beta=" + format.format(beta.getData()) + " avg loss=" + format.format(avg_loss));
 
         }
     }

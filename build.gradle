@@ -8,10 +8,9 @@ buildscript {
             url "https://plugins.gradle.org/m2/"
         }
     }
-
     dependencies {
-        classpath 'com.github.erizo.gradle:jcstress-gradle-plugin:0.8.0'
-        classpath "gradle.plugin.me.champeau.gradle:jmh-gradle-plugin:0.3.0"
+        classpath "me.champeau.gradle:jmh-gradle-plugin:0.5.2"
+        classpath 'com.github.erizo.gradle:jcstress-gradle-plugin:0.8.6'
     }
 }
 
@@ -21,22 +20,25 @@ apply plugin: 'jcstress'
 
 sourceCompatibility = 1.8
 
+ext {
+    jcstressVersion = '0.7'
+    jmhVersion = '1.20'
+}
 
 repositories {
     mavenCentral()
     jcenter()
 }
 
-
 jcstress {
+    jcstressDependency "org.openjdk.jcstress:jcstress-core:${jcstressVersion}"
     jvmArgs = '-server -XX:+UnlockDiagnosticVMOptions'
     iterations = 10
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-    compile 'org.openjdk.jcstress:jcstress-core:0.2'
-    compile "org.openjdk.jmh:jmh-core:1.20"
-    compile 'org.openjdk.jmh:jmh-generator-annprocess:1.20'
-    compile "org.testng:testng:6.9.10"
+    testCompile "org.testng:testng:6.9.10"
+    compile "org.openjdk.jcstress:jcstress-core:${jcstressVersion}"
+    jmh "org.openjdk.jmh:jmh-core:${jmhVersion}"
+    jmh "org.openjdk.jmh:jmh-generator-annprocess:${jmhVersion}"
 }
