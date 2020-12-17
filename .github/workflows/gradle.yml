@@ -28,7 +28,7 @@ jobs:
         restore-keys: ${{ runner.os }}-gradle
     - name: Build with Gradle
       run: gradle build
-    - name: Run JMH with Gradle
-      run: gradle jmh 
+  #  - name: Run JMH with Gradle
+  #    run: gradle jmh 
     - name: Run Jcstress with Gradle
       run: gradle jcstress
